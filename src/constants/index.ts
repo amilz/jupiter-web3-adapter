@@ -1,0 +1,1 @@
+export const PUBLIC_JUPITER_ENDPOINT = "https://public.jupiterapi.com";
