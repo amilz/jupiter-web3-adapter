@@ -5,7 +5,7 @@ export interface PriceGetRequest {
     restrictIntermediateTokens?: boolean;
 }
 
-interface TokenInfo {
+export interface TokenInfo {
     id: string;
     mintSymbol: string;
     vsToken: string;

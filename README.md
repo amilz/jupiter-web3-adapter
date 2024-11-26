@@ -56,3 +56,29 @@ async function main() {
 
 main();
 ```
+
+## Running tests
+
+To run tests, you will need a Metis Jupiter API endpoint. You can obtain one by following the instructions [here](https://marketplace.quicknode.com/add-on/metis-jupiter-v6-swap-api).
+
+#### Install Dependencies
+
+```
+npm install
+```
+
+#### Create .env.local
+
+Rename `.env.example` to `.env.local`
+
+Update Metis URL
+
+```sh
+METIS_ENDPOINT=https://jupiter-swap-api.quiknode.pro/CHANGEME
+```
+
+#### Run Tests
+
+```
+npm test
+```

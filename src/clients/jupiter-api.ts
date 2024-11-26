@@ -7,13 +7,14 @@ import {
     createRpc,
 } from "@solana/web3.js";
 import {
-    JupiterApiConfig, 
-    JupiterApi, 
-    MethodConfig, 
-    HttpRequestType, 
+    JupiterApiConfig,
+    JupiterApi,
+    MethodConfig,
+    HttpRequestType,
     JupiterMethod,
 } from "../types/jupiter-api";
 import { PUBLIC_JUPITER_ENDPOINT } from "../constants";
+import { JupiterApiError, JupiterPaidEndpointError } from '../errors';
 
 export class JupiterClient {
     public readonly jupiterApi: Rpc<JupiterApi>;
@@ -64,10 +65,7 @@ export class JupiterClient {
 
     private validatePaidEndpoint(method: string, config: MethodConfig[keyof MethodConfig]): void {
         if (config.paidOnly && this.isPublicEndpoint()) {
-            throw new Error(
-                `Method ${method} requires a paid subscription to Jupiter V6 Swap API.\n` +
-                'Upgrade at https://marketplace.quicknode.com/add-on/metis-jupiter-v6-swap-api'
-            );
+            throw new JupiterPaidEndpointError(method);
         }
     }
 
@@ -104,25 +102,43 @@ export class JupiterClient {
     private createTransport(): RpcTransport {
         return async <TResponse>(...args: any): Promise<TResponse> => {
             if (!args[0]?.payload) {
-                throw new Error('Invalid RPC payload');
+                throw new JupiterApiError('Invalid RPC payload');
             }
 
             const { method, params } = args[0].payload as { method: string; params: unknown };
-            const config: MethodConfig[JupiterMethod] = JupiterClient.METHOD_CONFIG[method];
+            const config: MethodConfig[JupiterMethod] = JupiterClient.METHOD_CONFIG[method as JupiterMethod];
 
             if (!config) {
-                throw new Error(`Unknown method: ${method}`);
+                throw new JupiterApiError(`Unknown method: ${method}`, 400, method);
             }
 
-            const path = this.getPath(method, config);
-            this.validatePaidEndpoint(method, config);
-            const { url, requestOpts } = this.buildRequest(path, config.httpMethod, params);
-            const response = await fetch(url.toString(), requestOpts);
-            if (!response.ok) {
-                throw new Error(`Error making fetch request to ${url}: ${response.statusText}`);
-            }
+            try {
+                const path = this.getPath(method, config);
+                this.validatePaidEndpoint(method, config);
+                const { url, requestOpts } = this.buildRequest(path, config.httpMethod, params);
+                const response = await fetch(url.toString(), requestOpts);
 
-            return await response.json() as TResponse;
+                if (!response.ok) {
+                    throw new JupiterApiError(
+                        `Request failed: ${response.statusText}`,
+                        response.status,
+                        method,
+                        url.toString()
+                    );
+                }
+                return await response.json() as TResponse;
+            } catch (error) {
+                // Rethrow our custom errors
+                if (error instanceof JupiterApiError) {
+                    throw error;
+                }
+                // Wrap unknown errors
+                throw new JupiterApiError(
+                    `Error in ${method}: ${(error as Error).message || 'Unknown error'}`,
+                    500,
+                    method
+                );
+            }
         };
     }
 

@@ -1,6 +1,4 @@
 export interface TokensRequest {
     useQNMarketCache?: boolean;
 }
-export interface TokensResponse {
-    mints: string[];
-}
+export type TokensResponse = string[]

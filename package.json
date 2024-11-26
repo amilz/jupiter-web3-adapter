@@ -3,13 +3,21 @@
   "version": "1.0.0",
   "description": "Jupiter API For Solana Web3.js 2.0+",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "node  --test tests/*.test.ts"
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@solana/web3.js": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
   }
 }
